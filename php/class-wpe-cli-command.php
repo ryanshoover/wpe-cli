@@ -2,37 +2,61 @@
 
 class WPE_CLI_Command extends WP_CLI_Command {
 
-	public function cli( $args, $assoc_args ) {
+	/**
+     * Runs a command on WP Engine installs
+     *
+     * ## OPTIONS
+     *
+     * <install>
+     * : The name of the install to run the command on
+     *
+     * <command>
+     * : The actual wp-cli command to run
+     *
+     * [--environment=<type>]
+     * : Whether to run this in production or staging
+     * ---
+     * default: production
+     * options:
+     *   - production
+     *   - staging
+     * ---
+     *
+     * ## EXAMPLES
+     *
+     *     wp wpe myinstall core version
+     *     wp wpe myinstall plugin update --all --environment=staging
+     *
+     * @when after_wp_load
+     */
+	public function __invoke( $args, $assoc_args ) {
+		$config = $this->get_config();
+
+		if ( empty( $config ) ) {
+			WP_CLI::error( 'Please set the wpe-cli config values in your config.yml file' );
+		}
+
 		$install = array_shift( $args );
 
-		$environment = ! empty( $assoc_args['environment'] ) ? $assoc_args['environment'] : 'production';
+		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'environment', 'production' );
 
-		$command = implode( ' ', $args );
+		unset( $assoc_args['environment'] );
 
-		foreach ( $assoc_args as $key => $val ) {
-			if ( true === $val ) {
-				$command .= " --{$key}";
-			} else {
-				$command .= " --{$key}={$val}";
-			}
-		}
+		$command = \WP_CLI\Utils\args_to_str( $args );
+
+		$command .= \WP_CLI\Utils\assoc_args_to_str( $assoc_args );
 
 		$url = "https://my.wpengine.com/installs/{$install}/wp_cli?environment={$environment}";
 
-		$token = '7mLdItRR5J2CpPexM1FPmnJ9YhjOXvPy8AAMdm5ys1n28W9NJX/JxhbhUbTJMawpi4UtZ5vzod9s90XPAfhe9w==';
-
-		$arv4 = 'TAHWBEST55E5TJYIHVPHVJ%3A20170201%3A25%7C5CW3DDC2HFD6PG3HGA4GUM%3A20170201%3A25%7C66DS7TWRAJCDVGEJKPFSTO%3A20170201%3A6%7CO52ALOLRLRBPBEREO22RZS%3A20170201%3A19';
-
-		$session = '17db8c633de93b2abc34fc21a539e43f';
-
 		$cookies = array();
 
-		$cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $arv4 ] );
-		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $session ] );
+		$cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
+		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $config['session_id'] ] );
 
 		$post_args = array(
+			'timeout' => 30,
 			'headers' => array(
-				'X-CSRF-Token' => $token,
+				'X-CSRF-Token' => $config['token'],
 				),
 			'cookies' => $cookies,
 			'body'    => [ 'command' => $command ],
@@ -55,10 +79,13 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		WP_CLI::success( $message->response );
 	}
 
-	public function save( $args, $assoc_args ) {
+	protected function get_config() {
+		$full_config = \WP_CLI::get_configurator()->to_array();
 
+		$config = ! empty( $full_config[1]['wpe-cli'] ) ? $full_config[1]['wpe-cli'] : [];
+
+		return $config;
 	}
-
 }
 
 WP_CLI::add_command( 'wpe', 'WPE_CLI_Command' );

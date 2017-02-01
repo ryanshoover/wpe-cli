@@ -17,5 +17,4 @@ define( 'WPE_CLI', true );
  * Some files need to be manually loaded
  */
 require_once dirname( __FILE__ ) . '/autoload.php';
-require_once dirname( __FILE__ ) . '/php/class-wpe-cli.php';
 require_once dirname( __FILE__ ) . '/php/class-wpe-cli-command.php';
