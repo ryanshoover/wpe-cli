@@ -1,0 +1,25 @@
+{
+    "name": "ryanshoover/wpecli",
+    "description": "Provides wp-cli access to WPE installs",
+    "type": "wp-cli-package",
+    "homepage": "https://github.com/ryanshoover/wpe-cli",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ryan Hoover",
+            "email": "ryanshoover@gmail.com",
+            "homepage": "http://ryan.hoover.ws",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+
+    },
+    "autoload": {
+        "files": [ "wpe-cli.php" ]
+    },
+    "require-dev": {
+        "behat/behat": "~2.5"
+    }
+}
