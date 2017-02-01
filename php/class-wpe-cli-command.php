@@ -5,23 +5,6 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	/**
      * Runs a command on WP Engine installs
      *
-     * ## OPTIONS
-     *
-     * <install>
-     * : The name of the install to run the command on
-     *
-     * <command>
-     * : The actual wp-cli command to run
-     *
-     * [--environment=<type>]
-     * : Whether to run this in production or staging
-     * ---
-     * default: production
-     * options:
-     *   - production
-     *   - staging
-     * ---
-     *
      * ## EXAMPLES
      *
      *     wp wpe myinstall core version
