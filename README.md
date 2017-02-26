@@ -20,7 +20,7 @@ $ wp wpe myinstall core version
 	* The value for the Header X-CSRF-Token
 	* The value for the Cookie __ar_v4
 	* The value for the Cookie _session_id
-6. Add these values to [your config file](https://make.wordpress.org/cli/handbook/config/) in the format below
+6. Add these values to [your config file](https://make.wordpress.org/cli/handbook/config/#config-files) in the format below
 7. Done!
 
 ```yaml
