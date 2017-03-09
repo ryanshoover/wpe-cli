@@ -6,7 +6,7 @@
 
 function wpe_cli_autoloader( $class ) {
 
-	if ( $class[0] === '\\') {
+	if ( '\\' === $class[0] ) {
 		$class = substr( $class, 1 );
 	}
 
