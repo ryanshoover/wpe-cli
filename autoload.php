@@ -27,4 +27,3 @@ function wpe_cli_autoloader( $class ) {
 }
 
 spl_autoload_register( 'wpe_cli_autoloader' );
-
