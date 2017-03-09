@@ -55,6 +55,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		switch ( $args[0] ) {
 			case 'backup' :
+				$settings = $this->get_backup_settings( $assoc_args );
 			break;
 
 			case 'flush' :
@@ -79,9 +80,31 @@ class WPE_CLI_Command extends WP_CLI_Command {
 			return;
 		}
 
-		$message = json_decode( $res['body'] );
+		$json_res = json_decode( $res['body'] );
 
-		WP_CLI::log( $message->response );
+		if ( $json_res && ! empty( $json_res->response ) ) {
+			WP_CLI::log( $json_res->response );
+		} else {
+			WP_CLI::success( 'Finished!' );
+		}
+	}
+
+	protected function get_backup_settings( $assoc_args ) {
+		$settings = array();
+
+		$settings['url'] = "{$this->base_url}/backup_points";
+		$settings['post_args'] = $this->get_default_post_args();
+
+		$settings['post_args']['body'] = array(
+			'checkpoint' => array(
+				'environment' => $this->environment,
+				'comment' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'message', 'Triggered by wpe-cli' ),
+				'notification_emails' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'emails' ),
+				),
+			'commit' => "Create {$this->environment} backup",
+			);
+
+		return $settings;
 	}
 
 	protected function get_flush_settings() {
@@ -114,7 +137,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$cookies = array();
 
-		$cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
+		// $cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
 		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $config['session_id'] ] );
 
 		$post_args = array(
