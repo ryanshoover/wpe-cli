@@ -6,38 +6,38 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	protected $environment = '';
 
 	/**
-     * Runs a command on WP Engine installs.
-     *
-     * ## OPTIONS
-     *
-     * <install>
-     * : The WP Engine install to run the command on.
-     *
-     * <command>
-     * : The command to run on the install.
-     *
-     * [<field>]
-     * : Any additional wp-cli commands needed
-     *
-     * [--staging]
-     * : Run the command on the staging environment.
-     *
-     * [--<field>=<value>]
-     * : Include any wp-cli specific requests.
-     *
-     * ## EXAMPLES
-     *
-     *     # Get the WordPress version of your install
-     *     $ wp wpe myinstall core version
-     *     Success: 4.7.2
-     *
-     *     # Update all of your install's plugins on staging
-     *     $ wp wpe myinstall plugin update --all --staging
-     *     Success:
-     *     wp wpe myinstall flush
-     *
-     * @when after_wp_load
-     */
+	 * Runs a command on WP Engine installs.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <install>
+	 * : The WP Engine install to run the command on.
+	 *
+	 * <command>
+	 * : The command to run on the install.
+	 *
+	 * [<field>]
+	 * : Any additional wp-cli commands needed
+	 *
+	 * [--staging]
+	 * : Run the command on the staging environment.
+	 *
+	 * [--<field>=<value>]
+	 * : Include any wp-cli specific requests.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Get the WordPress version of your install
+	 *     $ wp wpe myinstall core version
+	 *     Success: 4.7.2
+	 *
+	 *     # Update all of your install's plugins on staging
+	 *     $ wp wpe myinstall plugin update --all --staging
+	 *     Success:
+	 *     wp wpe myinstall flush
+	 *
+	 * @when after_wp_load
+	 */
 	public function __invoke( $args, $assoc_args ) {
 		$this->config = $this->get_config();
 
