@@ -2,34 +2,115 @@
 
 class WPE_CLI_Command extends WP_CLI_Command {
 
+	protected $base_url = '';
+	protected $environment = '';
+
 	/**
-     * Runs a command on WP Engine installs
+     * Runs a command on WP Engine installs.
+     *
+     * ## OPTIONS
+     *
+     * <install>
+     * : The WP Engine install to run the command on.
+     *
+     * <command>
+     * : The command to run on the install.
+     *
+     * [<field>]
+     * : Any additional wp-cli commands needed
+     *
+     * [--staging]
+     * : Run the command on the staging environment.
+     *
+     * [--<field>=<value>]
+     * : Include any wp-cli specific requests.
      *
      * ## EXAMPLES
      *
-     *     wp wpe myinstall core version
-     *     wp wpe myinstall plugin update --all --environment=staging
+     *     # Get the WordPress version of your install
+     *     $ wp wpe myinstall core version
+     *     Success: 4.7.2
+     *
+     *     # Update all of your install's plugins on staging
+     *     $ wp wpe myinstall plugin update --all --staging
+     *     Success:
+     *     wp wpe myinstall flush
      *
      * @when after_wp_load
      */
 	public function __invoke( $args, $assoc_args ) {
-		$config = $this->get_config();
-
-		if ( empty( $config ) ) {
-			WP_CLI::error( 'Please set the wpe-cli config values in your config.yml file' );
-		}
+		$this->config = $this->get_config();
 
 		$install = array_shift( $args );
 
-		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'environment', 'production' );
+		$this->base_url = "https://my.wpengine.com/installs/{$install}";
 
-		unset( $assoc_args['environment'] );
+		$this->environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
 
-		$command = \WP_CLI\Utils\args_to_str( $args );
+		unset( $assoc_args['staging'] );
 
+		if ( empty( $args ) ) {
+			WP_CLI::error( 'Please provide a command to execute' );
+		}
+
+		switch ( $args[0] ) {
+			case 'backup' :
+			break;
+
+			case 'flush' :
+				$settings = $this->get_flush_settings();
+			break;
+
+			default :
+				$settings = $this->get_wp_cli_settings( $args, $assoc_args );
+		};
+
+		$res = wp_remote_post( $settings['url'], $settings['post_args'] );
+
+		// If the response is a WP_ERROR, then something went very wrong
+		if ( is_wp_error( $res ) ) {
+			WP_CLI::error( 'Something went wrong' . PHP_EOL . print_r( $res, true ) );
+			return;
+		}
+
+		// If the response code is not in the 200s, something went wrong
+		if ( 300 <= $res['response']['code'] ) {
+			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' ' . $res['response']['message'] );
+			return;
+		}
+
+		$message = json_decode( $res['body'] );
+
+		WP_CLI::log( $message->response );
+	}
+
+	protected function get_flush_settings() {
+		$settings = array();
+
+		$settings['url'] = "{$this->base_url}/utilities/clear_cache";
+		$settings['post_args'] = $this->get_default_post_args();
+
+		return $settings;
+	}
+
+	protected function get_wp_cli_settings( $args, $assoc_args ) {
+		$command  = '';
+		$command .= \WP_CLI\Utils\args_to_str( $args );
 		$command .= \WP_CLI\Utils\assoc_args_to_str( $assoc_args );
 
-		$url = "https://my.wpengine.com/installs/{$install}/wp_cli?environment={$environment}";
+		$settings = array();
+
+		$settings['url'] = "{$this->base_url}/wp_cli?environment={$this->environment}";
+		$settings['post_args'] = $this->get_default_post_args();
+
+		$settings['post_args']['body'] = array( 'command' => $command );
+
+		return $settings;
+	}
+
+	protected function get_default_post_args() {
+
+		$config = $this->config;
 
 		$cookies = array();
 
@@ -42,30 +123,19 @@ class WPE_CLI_Command extends WP_CLI_Command {
 				'X-CSRF-Token' => $config['token'],
 				),
 			'cookies' => $cookies,
-			'body'    => [ 'command' => $command ],
 			);
 
-		$res = wp_remote_post( $url, $post_args );
-
-		if ( is_wp_error( $res ) ) {
-			WP_CLI::error( 'Something went wrong' . PHP_EOL . print_r( $res, true ) );
-			return;
-		}
-
-		if ( 300 < $res['response']['code'] ) {
-			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' ' . $res['response']['message'] );
-			return;
-		}
-
-		$message = json_decode( $res['body'] );
-
-		WP_CLI::success( $message->response );
+		return $post_args;
 	}
 
 	protected function get_config() {
 		$full_config = \WP_CLI::get_configurator()->to_array();
 
 		$config = ! empty( $full_config[1]['wpe-cli'] ) ? $full_config[1]['wpe-cli'] : [];
+
+		if ( empty( $config ) ) {
+			WP_CLI::error( 'Please set the wpe-cli config values in your config.yml file' );
+		}
 
 		return $config;
 	}
