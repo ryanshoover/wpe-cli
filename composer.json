@@ -1,5 +1,5 @@
 {
-    "name": "ryanshoover/wpecli",
+    "name": "ryanshoover/wpe-cli",
     "description": "Provides wp-cli access to WPE installs",
     "type": "wp-cli-package",
     "homepage": "https://github.com/ryanshoover/wpe-cli",
