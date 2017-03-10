@@ -161,7 +161,6 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$cookies = array();
 
-		// $cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
 		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $config['session_id'] ] );
 
 		$post_args = array(
