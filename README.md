@@ -33,18 +33,19 @@ SUCCESS: Backup triggered! This can take a while! You will be notified at ryan.h
 	Ex: `wp package install anhskohbo/wp-cli-themecheck`
 2. Edit `~/.wp-cli/packages/composer.json`
 3. Add the `ryanshoover/wpe-cli` repo as a requirement
-	```json
-		"require": {
-	        "ryanshoover/wpe-cli": "dev-master",
-	    },
-		"repositories": {
-	        "ryanshoover/wpe-cli": {
-	            "type": "vcs",
-	            "url": "https://github.com/ryanshoover/wpe-cli"
-	        }
-	    },
-	```
 4. Run `~/.wp-cli/packages/composer update`
+
+```json
+	"require": {
+        "ryanshoover/wpe-cli": "dev-master",
+    },
+	"repositories": {
+        "ryanshoover/wpe-cli": {
+            "type": "vcs",
+            "url": "https://github.com/ryanshoover/wpe-cli"
+        }
+    },
+```
 
 ### Configure the authentication settings
 
