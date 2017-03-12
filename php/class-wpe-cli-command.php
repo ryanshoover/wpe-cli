@@ -155,6 +155,59 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		WP_CLI::success( 'Backup triggered! This can take a while! You will be notified at ryan.hoover@wpengine.com when the checkpoint has completed.' );
 	}
 
+	/**
+	 * Replace your local database with the database from your WP Engine install
+	 *
+	 * ## OPTIONS
+	 *
+	 * <install>
+	 * : The WP Engine install to retrieve the database from.
+	 *
+	 * [--staging]
+	 * : Get the database from the staging environment.
+	 *
+	 *
+	 * @when after_wp_load
+	 * @subcommand fetch-db
+	 */
+	public function fetch_db( $args, $assoc_args ) {
+		$install = array_shift( $args );
+
+		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
+
+		unset( $assoc_args['staging'] );
+
+		$command = 'db export -';
+
+		$url = "{$this->base_url}/{$install}/wp_cli?environment={$environment}";
+
+		$post_args = $this->get_default_post_args();
+
+		$post_args['body'] = array( 'command' => $command );
+
+		$res = $this->send_post_request( $url, $post_args );
+
+		$json_res = json_decode( $res['body'] );
+
+		if ( ! $json_res || empty( $json_res->response ) ) {
+			WP_CLI::error( 'There was a problem fetching the database' );
+		}
+
+		$file = \WP_CLI\Utils\get_temp_dir() . 'wpe-cli-fetch-db-' . time() . '.sql';
+
+		$fd = fopen( $file, 'w' );
+
+		fwrite( $fd, $json_res->response );
+
+		fclose( $fd );
+
+		$db_command = new DB_Command;
+
+		$db_command->import( [ $file ], [], [] );
+
+		unlink( $file );
+	}
+
 	protected function get_default_post_args() {
 
 		$config = $this->get_config();
