@@ -152,9 +152,11 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Replace your local database with the database from your WP Engine install
 	 *
-	 * This may error out on large databases. If you get an error, run the command again. It should succeed the second time
-	 * All commands to WP Engine time out after 30 seconds. The initial db dump from myinstall may take longer than 30 seconds
-	 * However, subsequent dumps are usually much faster to produce. Some weird quirk with the WP Engine platform.
+	 * This may error out on large databases. If you get an error, run the command again.
+	 * It should succeed the second time. All commands to WP Engine time out after
+	 * 30 seconds. The initial db dump from myinstall may take longer than 30 seconds.
+	 * However, subsequent dumps are usually much faster to produce. Some weird quirk
+	 * with the WP Engine platform.
 	 *
 	 * ## OPTIONS
 	 *
@@ -163,6 +165,12 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *
 	 * [--staging]
 	 * : Get the database from the staging environment.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Replace my local database with the database from my install
+	 *     $ wp wpe fetch-db myinstall
+	 *     Success: Local database replaced with database from myinstall.
 	 *
 	 * @when after_wp_load
 	 * @subcommand fetch-db
@@ -212,7 +220,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 			WP_CLI::runcommand( "search-replace {$remote_domain} {$local_domain} --all-tables --precise --quiet --skip-columns='guid'", $runcommand_options );
 		}
 
-		WP_CLI::success( 'Local database replaced with database from ' . $install );
+		WP_CLI::success( "Local database replaced with database from {$install}." );
 	}
 
 	protected function get_default_post_args() {

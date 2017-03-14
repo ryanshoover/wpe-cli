@@ -15,21 +15,21 @@ Clear all of the caches on your WP Engine production install
 
 ```bash
 $ wp wpe flush myinstall
-SUCCESS: Cache flushed!
+Success: Cache flushed!
 ```
 
 Trigger a backup checkpoint on your WP Engine install
 
 ```bash
 $ wp wpe backup myinstall
-SUCCESS: Backup triggered! This can take a while! You will be notified at ryan.hoover@wpengine.com when the checkpoint has completed.
+Success: Backup triggered! This can take a while! You will be notified at ryan.hoover@wpengine.com when the checkpoint has completed.
 ```
 
 Replace your local database with a fresh copy of a WP Engine install's database
 
 ```bash
 $ wp wpe fetch-db myinstall
-Success: Imported from '/tmp/wpe-cli-fetch-db-1489176549.sql'.
+Success: Local database replaced with database from myinstall.
 ```
 
 ## Installation
