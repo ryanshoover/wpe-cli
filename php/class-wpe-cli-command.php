@@ -2,27 +2,13 @@
 
 class WPE_CLI_Command extends WP_CLI_Command {
 
-	protected $base_url = 'https://my.wpengine.com/installs/';
+	protected $base_url = 'https://my.wpengine.com/installs';
 
 	/**
 	 * Runs a wp-cli command on WP Engine installs.
 	 *
-	 * ## OPTIONS
-	 *
-	 * <install>
-	 * : The WP Engine install to run the command on.
-	 *
-	 * <command>
-	 * : The command to run on the install.
-	 *
-	 * [<field>]
-	 * : The wp-cli commands needed.
-	 *
-	 * [--staging]
-	 * : Run the command on the staging environment.
-	 *
-	 * [--<field>=<value>]
-	 * : Include any wp-cli specific requests.
+	 * Documentation is incomplete as I'm currently fighting with
+	 * the PHPDoc parser to allow unlimited arguments
 	 *
 	 * ## EXAMPLES
 	 *
@@ -54,9 +40,11 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$url = "{$this->base_url}/{$install}/wp_cli?environment={$environment}";
 
-		$post_args = $this->get_default_post_args();
-
-		$post_args['body'] = array( 'command' => $command );
+		$post_args = array(
+			'body' => array(
+				'command' => $command,
+				),
+			);
 
 		$res = $this->send_post_request( $url, $post_args );
 
@@ -89,9 +77,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$url = "{$this->base_url}/{$install}/utilities/clear_cache";
 
-		$post_args = $this->get_default_post_args();
-
-		$this->send_post_request( $url, $post_args );
+		$this->send_post_request( $url );
 
 		WP_CLI::success( 'Cache flushed!' );
 	}
@@ -131,23 +117,17 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
 
-		unset( $assoc_args['staging'] );
+		$url = "{$this->base_url}/{$install}/backup_points";
 
-		if ( empty( $args ) ) {
-			WP_CLI::error( 'Please provide a command to execute' );
-		}
-
-		$url = "{$this->base_url}/{$install}/utilities/backup_points";
-
-		$post_args = $this->get_default_post_args();
-
-		$post_args['body'] = array(
-			'checkpoint' => array(
-				'environment' => $environment,
-				'comment' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'message', 'Triggered by wpe-cli' ),
-				'notification_emails' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'emails' ),
+		$post_args = array(
+			'body' => array(
+				'checkpoint' => array(
+					'environment' => $environment,
+					'comment' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'message', 'Triggered by wpe-cli' ),
+					'notification_emails' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'emails' ),
+					),
+				'commit' => "Create {$environment} backup",
 				),
-			'commit' => "Create {$environment} backup",
 			);
 
 		$this->send_post_request( $url, $post_args );
@@ -161,6 +141,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$cookies = array();
 
+		$cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
 		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $config['session_id'] ] );
 
 		$post_args = array(
@@ -174,7 +155,9 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		return $post_args;
 	}
 
-	protected function send_post_request( $url, $post_args ) {
+	protected function send_post_request( $url, $post_args = array() ) {
+		$post_args = array_merge( $this->get_default_post_args(), $post_args );
+
 		$res = wp_remote_post( $url, $post_args );
 
 		// If the response is a WP_ERROR, then something went very wrong

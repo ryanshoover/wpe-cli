@@ -54,8 +54,9 @@ SUCCESS: Backup triggered! This can take a while! You will be notified at ryan.h
 3. Run a command in the wp-cli window
 4. Look at the request that went out to `https://my.wpengine.com/installs`
 5. From the request, get
-	* The value for the Header X-CSRF-Token
-	* The value for the Cookie _session_id
+	* The value for the Header `X-CSRF-Token`
+  * The value for the Cookie `__ar_v4`
+	* The value for the Cookie `_session_id`
 6. Add these values to [your config file](https://make.wordpress.org/cli/handbook/config/#config-files) in the format below
 7. Done!
 
@@ -63,6 +64,7 @@ SUCCESS: Backup triggered! This can take a while! You will be notified at ryan.h
 # Settings for the wpe-cli integration
 wpe-cli:
   token: ABCDEFGHIJKLMNOP
+  ar_v4: QRSTUVWYZ1234567890
   session_id: abcdefghijklmnop
 ```
 
