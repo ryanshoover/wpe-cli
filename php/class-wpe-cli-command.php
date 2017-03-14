@@ -146,7 +146,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$this->send_post_request( $url, $post_args );
 
-		WP_CLI::success( 'Backup triggered! This can take a while! You will be notified at ryan.hoover@wpengine.com when the checkpoint has completed.' );
+		WP_CLI::success( "Backup triggered! This can take a while! You will be notified by email when the checkpoint has completed." );
 	}
 
 	/**
