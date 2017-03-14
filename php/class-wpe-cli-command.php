@@ -36,7 +36,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @when after_wp_load
 	 */
-	public function cli( $args, $assoc_args, $echo = true ) {
+	public function cli( $args, $assoc_args ) {
 		$install = array_shift( $args );
 
 		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
@@ -65,12 +65,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		$json_res = json_decode( $res['body'] );
 
 		if ( $json_res && ! empty( $json_res->response ) ) {
-
-			if ( $echo ) {
-				WP_CLI::log( $json_res->response );
-			} else {
-				return $json_res->response;
-			}
+			WP_CLI::log( $json_res->response );
 		}
 	}
 
