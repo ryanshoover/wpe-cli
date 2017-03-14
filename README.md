@@ -34,13 +34,14 @@ Success: Local database replaced with database from myinstall.
 
 ## Installation
 
-### Install this as a wp-cli package
+### Option 1: Install this as a wp-cli package
 
 1. Install any wp-cli package (if you haven't already done so)
 	Ex: `wp package install anhskohbo/wp-cli-themecheck`
 2. Edit `~/.wp-cli/packages/composer.json`
 3. Add the `ryanshoover/wpe-cli` repo as a requirement
 4. Run `~/.wp-cli/packages/composer update`
+5. Use the CLI commands from any WordPress install on your local machine
 
 ```json
 	"require": {
@@ -53,6 +54,13 @@ Success: Local database replaced with database from myinstall.
         }
     },
 ```
+
+### Option 2: Install this as a plugin
+
+1. Clone the repo into your plugins folder
+  `git clone git@github.com:ryanshoover/wpe-cli.git ./wp-content/plugins/wpe-cli`
+2. Enable the plugin
+3. Use the CLI commands from just this WordPress install.
 
 ### Configure the authentication settings
 
