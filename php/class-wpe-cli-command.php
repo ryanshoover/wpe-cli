@@ -16,7 +16,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 * : The command to run on the install.
 	 *
 	 * [<field>...]
-	 * : The wp-cli commands needed.
+	 * : Extra wp-cli command arguments needed.
 	 *
 	 * [--staging]
 	 * : Run the command on the staging environment.
