@@ -7,8 +7,22 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	/**
 	 * Runs a wp-cli command on WP Engine installs.
 	 *
-	 * Documentation is incomplete as I'm currently fighting with
-	 * the PHPDoc parser to allow unlimited arguments
+	 * ## OPTIONS
+	 *
+	 * <install>
+	 * : The WP Engine install to run the command on.
+	 *
+	 * <command>
+	 * : The command to run on the install.
+	 *
+	 * [<field>...]
+	 * : Extra wp-cli command arguments needed.
+	 *
+	 * [--staging]
+	 * : Run the command on the staging environment.
+	 *
+	 * [--<field>=<value>]
+	 * : Include any wp-cli specific requests.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -133,6 +147,72 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		$this->send_post_request( $url, $post_args );
 
 		WP_CLI::success( 'Backup triggered! This can take a while! You will be notified at ryan.hoover@wpengine.com when the checkpoint has completed.' );
+	}
+
+	/**
+	 * Replace your local database with the database from your WP Engine install
+	 *
+	 * This may error out on large databases. If you get an error, run the command again. It should succeed the second time
+	 * All commands to WP Engine time out after 30 seconds. The initial db dump from myinstall may take longer than 30 seconds
+	 * However, subsequent dumps are usually much faster to produce. Some weird quirk with the WP Engine platform.
+	 *
+	 * ## OPTIONS
+	 *
+	 * <install>
+	 * : The WP Engine install to retrieve the database from.
+	 *
+	 * [--staging]
+	 * : Get the database from the staging environment.
+	 *
+	 * @when after_wp_load
+	 * @subcommand fetch-db
+	 */
+	public function fetch_db( $args, $assoc_args ) {
+
+		// Our runcommand_options to return the results of our command
+		$runcommand_options = array(
+			'return' => true,
+			);
+
+		// Get our assoc_args as a string we can use later
+		$assoc_args_str = \WP_CLI\Utils\assoc_args_to_str( $assoc_args );
+
+		$install = array_shift( $args );
+
+		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
+
+		// Get the remote site's domain
+		$remote_domain = WP_CLI::runcommand( "wpe cli {$install} option get siteurl {$assoc_args_str}", $runcommand_options );
+		$remote_domain = trim( $remote_domain );
+
+		// Get the local site's domain
+		$local_domain = WP_CLI::runcommand( 'option get siteurl', $runcommand_options );
+		$local_domain = trim( $local_domain );
+
+		// Download a dump of the database from STDOUT
+		$db_export = WP_CLI::runcommand( "wpe cli {$install} db export - {$assoc_args_str}", $runcommand_options );
+
+		// Save the remote DB as a temporary sql file
+		$file = \WP_CLI\Utils\get_temp_dir() . 'wpe-cli-fetch-db-' . $install . '-' . time() . '.sql';
+
+		$fd = fopen( $file, 'w' );
+
+		fwrite( $fd, $db_export );
+
+		fclose( $fd );
+
+		// Import our downloaded sql file
+		WP_CLI::runcommand( "db import {$file}" , $runcommand_options );
+
+		// Delete our sql file
+		unlink( $file );
+
+		// Run a search replace from remote domain to local domain
+		if ( $local_domain != $remote_domain ) {
+			WP_CLI::runcommand( "search-replace {$remote_domain} {$local_domain} --all-tables --precise --quiet --skip-columns='guid'", $runcommand_options );
+		}
+
+		WP_CLI::success( 'Local database replaced with database from ' . $install );
 	}
 
 	protected function get_default_post_args() {
