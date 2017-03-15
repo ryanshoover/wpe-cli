@@ -177,6 +177,8 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 */
 	public function fetch_db( $args, $assoc_args ) {
 
+		WP_CLI::log( 'Getting our necessary values' );
+
 		// Our runcommand_options to return the results of our command
 		$runcommand_options = array(
 			'return' => true,
@@ -198,6 +200,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		$local_domain = trim( $local_domain );
 
 		// Download a dump of the database from STDOUT
+		WP_CLI::log( "Getting database from {$install}." );
 		$db_export = WP_CLI::runcommand( "wpe cli {$install} db export - {$assoc_args_str}", $runcommand_options );
 
 		// Save the remote DB as a temporary sql file
@@ -210,6 +213,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		fclose( $fd );
 
 		// Import our downloaded sql file
+		WP_CLI::log( 'Importing the database into local instance.' );
 		WP_CLI::runcommand( "db import {$file}" , $runcommand_options );
 
 		// Delete our sql file
@@ -217,6 +221,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		// Run a search replace from remote domain to local domain
 		if ( $local_domain != $remote_domain ) {
+			WP_CLI::log( "Running a search-replace from {$remote_domain} to {$local_domain}" );
 			WP_CLI::runcommand( "search-replace {$remote_domain} {$local_domain} --all-tables --precise --quiet --skip-columns='guid'", $runcommand_options );
 		}
 
