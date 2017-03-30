@@ -1,6 +1,6 @@
 {
     "name": "ryanshoover/wpe-cli",
-    "description": "Provides wp-cli access to WPE installs",
+    "description": "Provides wp-cli access and other commands for WP Engine installs",
     "type": "wp-cli-package",
     "homepage": "https://github.com/ryanshoover/wpe-cli",
     "license": "MIT",
@@ -12,14 +12,10 @@
             "role": "Developer"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
-
+        "php": ">=5.3.29"
     },
     "autoload": {
         "files": [ "wpe-cli.php" ]
     },
-    "require-dev": {
-        "behat/behat": "~2.5"
-    }
 }
