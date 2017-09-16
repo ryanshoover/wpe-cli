@@ -263,7 +263,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		// If the response code is 404, credentials are probably expired
 		if ( 404 == $res['response']['code'] ) {
-			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' Your credentials probably expired or incorrect.';
+			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' Your credentials probably expired or incorrect.' );
 			return;
 		}
 
