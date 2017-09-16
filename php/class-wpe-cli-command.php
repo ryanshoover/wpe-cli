@@ -194,10 +194,12 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		// Get the remote site's domain
 		$remote_domain = WP_CLI::runcommand( "wpe cli {$install} option get siteurl {$assoc_args_str}", $runcommand_options );
 		$remote_domain = trim( $remote_domain );
+		$remote_domain = preg_replace( '/https?:\/\//', '', $remote_domain );
 
 		// Get the local site's domain
 		$local_domain = WP_CLI::runcommand( 'option get siteurl', $runcommand_options );
 		$local_domain = trim( $local_domain );
+		$local_domain = preg_replace( '/https?:\/\//', '', $local_domain );
 
 		// Download a dump of the database from STDOUT
 		WP_CLI::log( "Getting database from {$install}." );
@@ -256,6 +258,12 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		// If the response is a WP_ERROR, then something went very wrong
 		if ( is_wp_error( $res ) ) {
 			WP_CLI::error( 'Something went wrong' . PHP_EOL . print_r( $res, true ) );
+			return;
+		}
+
+		// If the response code is 404, credentials are probably expired
+		if ( 404 == $res['response']['code'] ) {
+			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' Your credentials probably expired or incorrect.';
 			return;
 		}
 
