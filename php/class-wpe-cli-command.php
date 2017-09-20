@@ -1,7 +1,20 @@
 <?php
+/**
+ * Core file for the WPE CLI library
+ *
+ * @package wpe-cli
+ */
 
+/**
+ * Class that handles the `wp wpe` commands.
+ */
 class WPE_CLI_Command extends WP_CLI_Command {
 
+	/**
+	 * The base URL of the Portal install.
+	 *
+	 * @var string
+	 */
 	protected $base_url = 'https://my.wpengine.com/installs';
 
 	/**
@@ -35,6 +48,9 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *     Success: Updated 1 of 3 themes
 	 *
 	 * @when after_wp_load
+	 *
+	 * @param array $args       The core arguments passed in the call.
+	 * @param array $assoc_args The flagged arguments passed in the call.
 	 */
 	public function cli( $args, $assoc_args ) {
 		$install = array_shift( $args );
@@ -57,8 +73,8 @@ class WPE_CLI_Command extends WP_CLI_Command {
 		$post_args = array(
 			'body' => array(
 				'command' => $command,
-				),
-			);
+			),
+		);
 
 		$res = $this->send_post_request( $url, $post_args );
 
@@ -85,6 +101,9 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @when after_wp_load
 	 * @alias clear-cache
+	 *
+	 * @param array $args       The core arguments passed in the call.
+	 * @param array $assoc_args The flagged arguments passed in the call.
 	 */
 	public function flush( $args, $assoc_args ) {
 		$install = array_shift( $args );
@@ -93,7 +112,7 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		$this->send_post_request( $url );
 
-		WP_CLI::success( 'Cache flushed!' );
+		WP_CLI::success( "\u{1F64C}  Cache flushed!" );
 	}
 
 	/**
@@ -104,14 +123,14 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 * <install>
 	 * : The WP Engine install to run the command on.
 	 *
-	 * [--staging]
-	 * : Run the command on the staging environment.
-	 *
-	 * [--message=<value>]
+	 * --message=<value>
 	 * : The description to give to the backup.
 	 *
-	 * [--emails=<value>]
+	 * --emails=<value>
 	 * : A comma separated list of emails that should be notified when the backup completes.
+	 *
+	 * [--staging]
+	 * : Run the command on the staging environment.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -125,6 +144,9 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @when after_wp_load
 	 * @alias checkpoint-create
+	 *
+	 * @param array $args       The core arguments passed in the call.
+	 * @param array $assoc_args The flagged arguments passed in the call.
 	 */
 	public function backup( $args, $assoc_args ) {
 		$install = array_shift( $args );
@@ -139,14 +161,15 @@ class WPE_CLI_Command extends WP_CLI_Command {
 					'environment' => $environment,
 					'comment' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'message', 'Triggered by wpe-cli' ),
 					'notification_emails' => \WP_CLI\Utils\get_flag_value( $assoc_args, 'emails' ),
-					),
-				'commit' => "Create {$environment} backup",
 				),
-			);
+				'commit' => "Create {$environment} backup",
+				'utf8' => '✓',
+			),
+		);
 
 		$this->send_post_request( $url, $post_args );
 
-		WP_CLI::success( "Backup triggered! This can take a while! You will be notified by email when the checkpoint has completed." );
+		\WP_CLI::success( "\u{1F64C}  Backup triggered! This can take a while! You will be notified by email when the checkpoint has completed." );
 	}
 
 	/**
@@ -174,38 +197,41 @@ class WPE_CLI_Command extends WP_CLI_Command {
 	 *
 	 * @when after_wp_load
 	 * @subcommand fetch-db
+	 *
+	 * @param array $args       The core arguments passed in the call.
+	 * @param array $assoc_args The flagged arguments passed in the call.
 	 */
 	public function fetch_db( $args, $assoc_args ) {
 
 		WP_CLI::log( 'Getting our necessary values' );
 
-		// Our runcommand_options to return the results of our command
+		// Our runcommand_options to return the results of our command.
 		$runcommand_options = array(
 			'return' => true,
-			);
+		);
 
-		// Get our assoc_args as a string we can use later
+		// Get our assoc_args as a string we can use later.
 		$assoc_args_str = \WP_CLI\Utils\assoc_args_to_str( $assoc_args );
 
 		$install = array_shift( $args );
 
 		$environment = \WP_CLI\Utils\get_flag_value( $assoc_args, 'staging' ) ? 'staging' : 'production';
 
-		// Get the remote site's domain
+		// Get the remote site's domain.
 		$remote_domain = WP_CLI::runcommand( "wpe cli {$install} option get siteurl {$assoc_args_str}", $runcommand_options );
 		$remote_domain = trim( $remote_domain );
 		$remote_domain = preg_replace( '/https?:\/\//', '', $remote_domain );
 
-		// Get the local site's domain
+		// Get the local site's domain.
 		$local_domain = WP_CLI::runcommand( 'option get siteurl', $runcommand_options );
 		$local_domain = trim( $local_domain );
 		$local_domain = preg_replace( '/https?:\/\//', '', $local_domain );
 
-		// Download a dump of the database from STDOUT
+		// Download a dump of the database from STDOUT.
 		WP_CLI::log( "Getting database from {$install}." );
 		$db_export = WP_CLI::runcommand( "wpe cli {$install} db export - {$assoc_args_str}", $runcommand_options );
 
-		// Save the remote DB as a temporary sql file
+		// Save the remote DB as a temporary sql file.
 		$file = \WP_CLI\Utils\get_temp_dir() . 'wpe-cli-fetch-db-' . $install . '-' . time() . '.sql';
 
 		$fd = fopen( $file, 'w' );
@@ -214,75 +240,103 @@ class WPE_CLI_Command extends WP_CLI_Command {
 
 		fclose( $fd );
 
-		// Import our downloaded sql file
+		// Import our downloaded sql file.
 		WP_CLI::log( 'Importing the database into local instance.' );
 		WP_CLI::runcommand( "db import {$file}" , $runcommand_options );
 
-		// Delete our sql file
+		// Delete our sql file.
 		unlink( $file );
 
-		// Run a search replace from remote domain to local domain
-		if ( $local_domain != $remote_domain ) {
+		// Run a search replace from remote domain to local domain.
+		if ( $local_domain !== $remote_domain ) {
 			WP_CLI::log( "Running a search-replace from {$remote_domain} to {$local_domain}" );
 			WP_CLI::runcommand( "search-replace {$remote_domain} {$local_domain} --all-tables --precise --quiet --skip-columns='guid'", $runcommand_options );
 		}
 
-		WP_CLI::success( "Local database replaced with database from {$install}." );
+		WP_CLI::success( "\u{1F64C}  Local database replaced with database from {$install}." );
 	}
 
+	/**
+	 * Get the arguments that should be in every POST request
+	 *
+	 * @return array POST arguments.
+	 */
 	protected function get_default_post_args() {
 
 		$config = $this->get_config();
 
 		$cookies = array();
 
-		$cookies[] = new WP_Http_Cookie( [ 'name' => '__ar_v4', 'value' => $config['ar_v4'] ] );
-		$cookies[] = new WP_Http_Cookie( [ 'name' => '_session_id', 'value' => $config['session_id'] ] );
+		$cookies[] = new WP_Http_Cookie(
+			[
+				'name' => '__ar_v4',
+				'value' => $config['ar_v4'],
+			]
+		);
+		$cookies[] = new WP_Http_Cookie(
+			[
+				'name' => '_session_id',
+				'value' => $config['session_id'],
+			]
+		);
 
 		$post_args = array(
 			'timeout' => 30,
 			'headers' => array(
 				'X-CSRF-Token' => $config['token'],
-				),
+			),
 			'cookies' => $cookies,
-			);
+		);
 
 		return $post_args;
 	}
 
+	/**
+	 * Send the POST request to the WPE server
+	 *
+	 * @param  string $url       The URL to query.
+	 * @param  array  $post_args All of the arguments to pass to wp_remote_post.
+	 * @return array             Results of the request.
+	 */
 	protected function send_post_request( $url, $post_args = array() ) {
 		$post_args = array_merge( $this->get_default_post_args(), $post_args );
 
 		$res = wp_remote_post( $url, $post_args );
 
-		// If the response is a WP_ERROR, then something went very wrong
+		// If the response is a WP_ERROR, then something went very wrong.
 		if ( is_wp_error( $res ) ) {
-			WP_CLI::error( 'Something went wrong' . PHP_EOL . print_r( $res, true ) );
+			WP_CLI::error( "\u{1F633}  Something went wrong" );
+			error_log( $res );
 			return;
 		}
 
-		// If the response code is 404, credentials are probably expired
-		if ( 404 == $res['response']['code'] ) {
-			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' Your credentials probably expired or incorrect.' );
+		// If the response code is 404, credentials are probably expired.
+		if ( 404 === $res['response']['code'] ) {
+			WP_CLI::error( "\u{1F624} Got an invalid response: " . $res['response']['code'] . ' Your credentials probably expired or incorrect.' );
 			return;
 		}
 
-		// If the response code is not in the 200s, something went wrong
+		// If the response code is not in the 200s, something went wrong.
 		if ( 300 <= $res['response']['code'] ) {
-			WP_CLI::error( 'Got an invalid response: ' . $res['response']['code'] . ' ' . $res['response']['message'] );
+			WP_CLI::error( "\u{1F624} Got an invalid response: " . $res['response']['code'] . ' ' . $res['response']['message'] );
 			return;
 		}
 
 		return $res;
 	}
 
+	/**
+	 * Get the authentication values from the config file
+	 *
+	 * @return array Authentication values.
+	 */
 	protected function get_config() {
 		$full_config = \WP_CLI::get_configurator()->to_array();
 
 		$config = ! empty( $full_config[1]['wpe-cli'] ) ? $full_config[1]['wpe-cli'] : [];
 
 		if ( empty( $config ) ) {
-			WP_CLI::error( 'Please set the wpe-cli config values in your config.yml file' );
+			WP_CLI::error( "\u{1F624}  Please set the wpe-cli config values in your config.yml file" );
 		}
 
 		return $config;

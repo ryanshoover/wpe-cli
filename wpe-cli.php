@@ -1,11 +1,13 @@
 <?php
-/*
-Plugin Name: WPE CLI
-Description: Provides wp-cli access to WPE installs. Definitely an unsupported feature of WP Engine.
-Author: Ryan Hoover
-Version: 0.1
-Author URI: https://ryan.hoover.ws
-*/
+/**
+ * Plugin Name: WPE CLI
+ * Description: Provides wp-cli access to WPE installs. Definitely an unsupported feature of WP Engine.
+ * Author: Ryan Hoover
+ * Version: 0.1
+ * Author URI: https://ryan.hoover.ws
+ *
+ * @package wpe-cli
+ */
 
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	return;
