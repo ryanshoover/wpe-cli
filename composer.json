@@ -17,5 +17,5 @@
     },
     "autoload": {
         "files": [ "wpe-cli.php" ]
-    },
+    }
 }
